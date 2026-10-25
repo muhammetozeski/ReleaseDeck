@@ -31,7 +31,7 @@ try {
     if($PSCmdlet.ShouldProcess($HostRepository,'Save the Google web-client credential and publish Release Deck')) {
         # One encrypted repository secret keeps the credential pair together. It is
         # sent over standard input, never a process argument or workflow input.
-        @{clientId=$ClientId;clientSecret=$plainSecret} | ConvertTo-Json -Compress | & gh secret set RELEASE_GOOGLE_WEB_CLIENT --repo $HostRepository
+        @{clientId=$ClientId;clientSecret=$plainSecret} | ConvertTo-Json -Compress | & gh secret set RELEASE_GOOGLE_WEB_CLIENT --app actions --repo $HostRepository
         if($LASTEXITCODE -ne 0){throw 'The private repository credential could not be saved; publication was not started.'}
         & gh workflow run deploy.yml --repo $HostRepository
         if($LASTEXITCODE -ne 0){throw 'The credential was saved, but publication could not start. Dispatch the existing deployment workflow.'}

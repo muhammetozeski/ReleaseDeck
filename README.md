@@ -2,7 +2,7 @@
 
 Prepare and deliver a multi-episode video release: inspect actual local media, check the release package, review episode metadata together, upload privately to an authorized YouTube channel and reconcile incomplete remote actions before proceeding.
 
-This project is being implemented. It is not counted as a delivered product. Channel operations require a configured OAuth application and each channel owner's explicit authorization. No upload, publication, audience or revenue is claimed from local fixtures.
+Current live delivery is recorded in [BinSite's publication ledger](https://github.com/muhammetozeski/BinSite/blob/main/publication.json). Channel operations require a configured OAuth application and each channel owner's explicit authorization. Uploads, publication, audience and revenue are recorded only when observed.
 
 The permanent source is this directory. The intended primary application path is `/release-deck/` on the existing BinSite origin; no additional public hosting project is needed. The browser application uses C#/.NET10 Blazor. Existing main-site creator accounts and subscription entitlements will be reused instead of introducing another payment account. The release API lives under `/api/commerce/release-deck/` so the existing account cookie reaches it.
 
