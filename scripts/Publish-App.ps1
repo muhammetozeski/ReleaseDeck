@@ -21,9 +21,11 @@ foreach($encoding in @('gzip','brotli')){
 }
 $redirects=[Collections.Generic.List[string]]::new()
 if($BasePath -ne '/'){$redirects.Add($BasePath.TrimEnd('/')+' '+$BasePath+' 308')}
-foreach($route in @('','workspace','workspace/:id','review','review/:id','operations','operations/:id','help')){
-    $redirects.Add($BasePath+$route+' '+$BasePath+'index.html 200')
-    if($route){$redirects.Add($BasePath+$route+'/ '+$BasePath+'index.html 200')}
+# Pages redirects index.html to its canonical folder even when reached by a 200 proxy.
+# Keep the browser's deep URL by proxying to that folder, without a self-proxy.
+foreach($route in @('workspace','workspace/:id','review','review/:id','operations','operations/:id','help')){
+    $redirects.Add($BasePath+$route+' '+$BasePath+' 200')
+    $redirects.Add($BasePath+$route+'/ '+$BasePath+' 200')
 }
 $redirects | Set-Content -LiteralPath (Join-Path $target '_redirects') -Encoding utf8
 @"
