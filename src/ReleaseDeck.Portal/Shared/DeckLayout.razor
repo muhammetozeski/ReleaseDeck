@@ -1,7 +1,7 @@
 @inherits LayoutComponentBase
 @implements IDisposable
 @inject ReleaseStore Store
-<div class="deck"><header class="masthead"><span class="brand"><span class="brand-icon" aria-hidden="true">▤</span> Release Deck</span><nav aria-label="Main"><NavLink href="" Match="NavLinkMatch.All">Releases</NavLink><NavLink href="workspace">Workspace</NavLink><a href="@(Store.Active.WorkspaceId is {} id ? "review/" + id : "review")">Team review</a><a href="@(Store.Active.WorkspaceId is {} projectId ? "operations/" + projectId : "operations")">Delivery</a></nav><div data-rd-theme-control></div><a class="account-link" href="/uyelik/?returnTo=%2Frelease-deck%2F">Account</a></header><main><Notice Text="@Store.StorageWarning" Error="true" />@Body</main><footer><a href="help">Help</a><a href="/privacy/">Privacy</a></footer></div>
+<div class="deck"><header class="masthead"><span class="brand"><span class="brand-icon" aria-hidden="true">▤</span> Release Deck</span><nav aria-label="Main"><NavLink href="" Match="NavLinkMatch.All">Releases</NavLink>@if(Store.Library.Contains(Store.Active)){<NavLink href="workspace">Workspace</NavLink>}@if(Store.Active.WorkspaceId is {} id){<a href="@("review/"+id)">Team review</a><a href="@("operations/"+id)">Delivery</a>}</nav><div data-rd-theme-control></div><a class="account-link" href="/uyelik/?returnTo=%2Frelease-deck%2F">Account</a></header><main><Notice Text="@Store.StorageWarning" Error="true" />@Body</main><footer><a href="help">Help</a><a href="/privacy/">Privacy</a></footer></div>
 @code {
  protected override void OnInitialized()=>Store.Changed+=Refresh;
  void Refresh()=>_ = InvokeAsync(StateHasChanged);

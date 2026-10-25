@@ -22,7 +22,7 @@ async function api(id, action) {
   try { return await response.json(); } catch { throw new Error('The upload action returned an unreadable result. Refresh its operation.'); }
 }
 function expiry(value) { const result = typeof value === 'number' ? value : Date.parse(value); return Number.isFinite(result) ? result : 0; }
-function offset(value, total) { if (!Number.isSafeInteger(value) || value < 0 || value > total) throw new Error('The upload offset could not be confirmed. Reconcile before continuing.'); return value; }
+function offset(value, total) { if (!Number.isSafeInteger(value) || value < 0 || value > total) throw new Error('Upload progress could not be confirmed. Check remote status before continuing.'); return value; }
 function validateCapability(value, job, entry) {
   if (value?.operationId !== job.id || value.totalBytes !== entry.file.size || !entry.identity || !sameIdentity(entry.identity, value.fileIdentity)) throw new Error('The selected file does not match this approved upload. Reselect and identify the correct video.');
   const url = new URL(value.uploadUrl);
@@ -45,7 +45,7 @@ async function reconcile(job, entry) {
 function rangeOffset(header, total) {
   if (header === null) return null;
   const match = /^bytes=0-(\d+)$/.exec(header.trim());
-  if (!match) throw new Error('Google returned an unreadable upload range. Reconcile before continuing.');
+  if (!match) throw new Error('Upload progress could not be confirmed. Check remote status before continuing.');
   return offset(Number(match[1]) + 1, total);
 }
 function alreadyReceived(operation) { return typeof operation.videoId === 'string' && operation.videoId.length > 0; }
