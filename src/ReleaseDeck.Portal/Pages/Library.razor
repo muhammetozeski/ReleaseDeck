@@ -1,0 +1,23 @@
+@page "/"
+@inherits DeckPage
+<PageTitle>Releases · Release Deck</PageTitle>
+<div class="page-heading"><div><p class="eyebrow">Your release desk</p><h1>Turn a set of videos into a release.</h1><p>Preview the originals, prepare each episode, then review and deliver.</p></div><button class="primary" disabled="@Busy" @onclick="New">New release <span aria-hidden="true">↗</span></button></div>
+<Notice Text="@Message" Error="@Failed" />
+<div class="library-grid"><section><div class="section-heading"><h2>On this device</h2><label class="button" for="project-import">Import project</label><input class="visually-hidden" id="project-import" type="file" accept=".json,application/json" @ref="ImportInput" @onchange="Import" disabled="@Busy"></div>
+@if(Store.Library.Count == 0){<div class="empty"><h3>Start with your own videos.</h3><p>Choose New release to open the workspace.</p></div>}
+<div class="release-list">@foreach(var item in Store.Library.OrderByDescending(item=>item.UpdatedAt)){<button class="release-row" disabled="@Busy" @onclick="()=>Open(item)"><span class="release-symbol" aria-hidden="true">▤</span><span><strong>@item.Body.Title</strong><small>@item.Body.Episodes.Count episodes · @item.UpdatedAt.ToLocalTime().ToString("MMM d, HH:mm")</small></span><span aria-hidden="true">→</span></button>}</div>
+<details class="starters"><summary>Series outlines</summary><p>Choose an outline, then add your videos.</p>@for(var i=0;i<ReleaseStarters.Names.Length;i++){var index=i;<button disabled="@Busy" @onclick="()=>Example(index)">@ReleaseStarters.Names[index]</button>}</details></section>
+<section><Notice Text="@OnlineMessage" Error="true" /><div class="section-heading"><h2>Online releases</h2><button disabled="@Busy" @onclick="ReadOnline">Refresh</button></div>
+@if(Account is null){<div class="empty"><p>Sign in to keep a release with your team.</p><a class="button" href="/uyelik/?returnTo=%2Frelease-deck%2F">Sign in</a></div>}else{<p class="quiet">@Account.UsedProjects of @Account.ProjectLimit projects used.</p>@foreach(var item in Online){<div class="online-row"><a href="@("workspace/"+item.Id)"><strong>@item.Title</strong><small>@item.Role @(item.ArchivedAt is null ? "" : "· archived")</small></a></div>}@if(Online.Count==0){<p class="quiet">Save a local release online from its workspace.</p>}}
+<details><summary>Join an invitation</summary><label>Invitation code<input @bind="Invite" @bind:event="oninput" maxlength="200" autocomplete="off" disabled="@Busy"></label><button disabled="@(Busy||string.IsNullOrWhiteSpace(Invite)||Account is null)" @onclick="Join">Join release</button></details></section></div>
+@code {
+ ElementReference ImportInput; List<Workspace> Online=[]; CreatorAccount? Account; string Invite="",OnlineMessage="";int OnlineReadGeneration;
+ protected override async Task OnInitializedAsync(){await Act(async()=>{await Store.Initialize();var fragment=new Uri(Navigation.Uri).Fragment;if(fragment.StartsWith("#invite=",StringComparison.Ordinal)){Invite=Uri.UnescapeDataString(fragment[8..]);if(Invite.Length>200)Invite="";if(Invite.Length>0)await Store.RememberInvite(Invite);}else Invite=await Store.RecallInvite()??"";});try{await ReadOnlineCore();}catch(Exception error){if(!Disposed)OnlineMessage=error is ReleaseFailure?error.Message:"Online releases are unavailable. You can still work with local videos.";}}
+ Task New()=>Act(async()=>{Store.New();await Store.Persist();Navigation.NavigateTo("workspace");});
+ Task Open(LocalRelease local)=>Act(async()=>{Store.Open(local);Navigation.NavigateTo("workspace");await Task.CompletedTask;});
+ Task Example(int index)=>Act(async()=>{Store.New(ReleaseStarters.Create(index));await Store.Persist();Navigation.NavigateTo("workspace");});
+ Task Import()=>Act(async()=>{var json=await Store.Import(ImportInput);if(json is null)return;var project=ReleaseRules.Import(json);Store.New(project);await Store.Persist();Navigation.NavigateTo("workspace");});
+ Task ReadOnline()=>Act(ReadOnlineCore);
+ async Task ReadOnlineCore(){var generation=++OnlineReadGeneration;var status=await Api.Account();if(Disposed||generation!=OnlineReadGeneration)return;Account=status.Account;if(Account is not null){var result=await Api.Get<WorkspaceList>("workspaces");if(!Disposed&&generation==OnlineReadGeneration)Online=result.Workspaces;}else Online=[];OnlineMessage="";}
+ Task Join()=>Act(async()=>{var joined=await Api.Post<JoinedWorkspace>("invites/join",new{token=Invite.Trim()});Invite="";await Store.ForgetInvite();Navigation.NavigateTo("workspace/"+joined.WorkspaceId);});
+}

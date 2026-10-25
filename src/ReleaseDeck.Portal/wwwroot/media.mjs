@@ -80,6 +80,10 @@ export async function inspectFile(id) {
   return entry.metadataPromise;
 }
 export function clearPreview(video) {
+  if (!video) {
+    for (const id of allMediaIds()) for (const preview of requireMedia(id).previews) if (preview.isConnected === false) clearPreview(preview);
+    return;
+  }
   const id = previewBindings.get(video);
   if (id) { try { requireMedia(id).previews.delete(video); } catch {} previewBindings.delete(video); }
   if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
